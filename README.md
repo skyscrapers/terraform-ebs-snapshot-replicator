@@ -10,6 +10,8 @@ This is how the module works to replicate EBS snapshots from a `source` AWS acco
 
 Note that when working with encrypted EBS snapshots, the Lambda function running in the `target` account that performs the copy operation will need access to the KMS key used to encrypt the original snapshot in the `source` account. Setting the appropriate key policy on the used KMS keys falls out of the scope of this module, as the policy block needs to be defined within the `aws_kms_key` resource used to create the key. You can know more about how to share a KMS key with different AWS accounts [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-modifying-snapshot-permissions.html#share-kms-key).
 
+Also note that this won't work for those snapshots encrypted with the default KMS key of the `source` AWS account, as those snapshots can't be shared with other accounts.
+
 ## Requirements
 
 | Name                                                                      | Version   |
