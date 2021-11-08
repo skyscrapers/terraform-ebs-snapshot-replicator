@@ -3,7 +3,7 @@ variable "name" {
   type        = string
 }
 
-variable "target_account_kms_key_id" {
+variable "target_account_kms_key_arn" {
   description = "KMS key to use to encrypt replicated RDS snapshots in the target AWS account"
   type        = string
 }
