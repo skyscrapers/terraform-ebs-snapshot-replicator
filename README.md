@@ -81,3 +81,57 @@ No modules.
 ## Outputs
 
 No outputs.
+
+## Example
+
+```hcl
+variable "source_region" {
+  default = "eu-west-1"
+}
+
+variable "target_region" {
+  default = "eu-central-1"
+}
+
+provider "aws" {
+  alias               = "production"
+  region              = var.source_region
+  profile             = "Production"
+}
+
+# Note that the replica provider is still configured with the source region as there's where the lambdas are deployed
+provider "aws" {
+  alias               = "replica"
+  region              = var.source_region
+  profile             = "Replica"
+}
+
+provider "aws" {
+  alias               = "replica_target_region"
+  region              = var.target_region
+  profile             = "Replica"
+}
+
+resource "aws_kms_key" "ebs_replicator" {
+  provider    = aws.replica_target_region
+  description = "KMS key to encrypt replicated EBS snapshots"
+}
+
+module "ebs_replicator" {
+  source                     = "github.com/skyscrapers/terraform-ebs-snapshot-replicator"
+  name                       = "velero"
+  target_account_kms_key_arn = aws_kms_key.ebs_replicator.arn
+  target_region              = var.target_region
+  retention_period           = 15
+
+  match_tags = {
+    "kubernetes.io/cluster/production-eks-foo" = "owned"
+    "velero.io/schedule-name"                  = "velero-cluster-backup"
+  }
+
+  providers = {
+    aws.source = aws.production
+    aws.target = aws.replica
+  }
+}
+```
